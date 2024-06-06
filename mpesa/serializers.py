@@ -1,6 +1,6 @@
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
-from mpesa.models import STKTransaction
+from mpesa.models import STKTransaction, B2CTransaction
 
 class STKTransactionSerializer(serializers.ModelSerializer):
 
@@ -17,7 +17,6 @@ class STKCheckoutSerializer(serializers.Serializer):
     def validate(self, attrs):
         phone_number = attrs.pop("phone_number")
         attrs["phone_number"] = str(phone_number)[1:]
-
         reference = attrs.get("reference", )
         description = attrs.get("description")
         amount = attrs.get("amount")
@@ -25,4 +24,29 @@ class STKCheckoutSerializer(serializers.Serializer):
             attrs["reference"] = "{}-{}".format(phone_number, amount)
         if description == "":
             attrs["description"] = "{}-{}".format(phone_number, amount)
+        return attrs
+
+
+class B2CTransactionSerializer(serializers.Serializer):
+
+    class Meta:
+        model = B2CTransaction
+        fields = "__all__"
+
+class B2CCheckoutSerializer(serializers.Serializer):
+    phone_number = PhoneNumberField()
+    amount = serializers.IntegerField(min_value=1)
+    remarks = serializers.CharField(default="")
+    occassion = serializers.CharField(default="")
+
+    def validate(self, attrs):
+        phone_number = attrs.pop("phone_number")
+        attrs["phone_number"] = str(phone_number)[1:]
+        remarks = attrs.get("remarks", )
+        occasion = attrs.get("occasion")
+        amount = attrs.get("amount")
+        if remarks == "":
+            attrs["remarks"] = "{}-{}".format(phone_number, amount)
+        if occasion == "":
+            attrs["occassion"] = "{}-{}".format(phone_number, amount)
         return attrs

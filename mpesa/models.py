@@ -16,19 +16,35 @@ class BaseModel(models.Model):
 
 class STKTransaction(BaseModel):
     STATUS = ((0, "Complete"), (1, "Pending"),)
-
-    transaction_no = models.CharField(default=uuid.uuid4, max_length=50, unique=True)
     phone_number = PhoneNumberField()
-    checkout_request_id = models.CharField(max_length=200)
-    reference = models.CharField(max_length=40, blank=True, null=True)
+    checkout_request_id = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True, null=True)
-    amount = models.CharField(max_length=10)
+    amount = models.IntegerField()
     status = models.CharField(max_length=10, choices=STATUS, default=1)
     receipt_no = models.CharField(max_length=200, blank=True, null=True)
-    created = models.DateTimeField(auto_now_add=True)
     ip = models.CharField(max_length=200, blank=True, null=True)
+    transaction_date = models.CharField(max_length=200, blank=True, null=True)
+    reference = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         verbose_name = _("STKTransaction")
         verbose_name_plural = _("STKTransactions")
 
+class B2CTransaction(BaseModel):
+    STATUS = ((0, "Complete"), (1, "Pending"),)
+    conversation_id = models.CharField(max_length=255, unique=True)
+    transaction_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    transaction_amount = models.PositiveIntegerField(null=True, blank=True)
+    working_account_balance = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    utility_account_balance = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    transaction_time = models.DateTimeField(null=True, blank=True)
+    recipient_phonenumber = PhoneNumberField(null=True, blank=True)
+    recipient_public_name = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS, default=1)
+    ip = models.CharField(max_length=200, blank=True, null=True)
+    occassion = models.CharField(max_length=200, blank=True, null=True)
+    remarks = models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('B2CTransaction')
+        verbose_name_plural = _('B2CTransactions')

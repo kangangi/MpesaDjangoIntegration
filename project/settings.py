@@ -135,15 +135,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Daraja config
 MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET")
 MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY")
-MPESA_API_KEY = config("MPESA_API_KEY")
+MPESA_API_KEY = config("MPESA_API_KEY", "LGnjwBa8p4/NNGT8Z1XfC1Fo44h+td//yz51/4NRQL0+rqEQC")
 MPESA_SHORT_CODE = config("MPESA_SHORT_CODE")
+MPESA_SECURITY_CREDENTIALS = config("MPESA_SECURITY_CREDENTIALS", "LGnjwBa8p4/NNGT8Z1XfC1Fo44h+td//yz51/4NRQL0+rqEQC")
+MPESA_USERNAME = config("MPESA_USERNAME", "sandbox_app")
 
 ENV = config("EVIRONMENT", "dev")
 if ENV == "production":
     MPESA_ACCESS_TOKEN_URL = 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
     MPESA_STK_PUSH_URL = 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+    MPESA_B2C_URL = 'https://api.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
 else:
     MPESA_ACCESS_TOKEN_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
     MPESA_STK_PUSH_URL = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
-MPESA_CALLBACK_URL = '/mpesa/call_back/'
+    MPESA_B2C_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2c/v3/paymentrequest'
+
+MPESA_STK_CALLBACK_URL = '/mpesa/stk/call_back/'
+MPESA_B2C_CALLBACK_URL = '/mpesa/b2c/call_back/'
 BASE_URL = config("BASE_URL", "http://127.0.0.1:8000")
