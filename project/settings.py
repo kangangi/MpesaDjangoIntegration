@@ -153,3 +153,10 @@ else:
 MPESA_STK_CALLBACK_URL = '/mpesa/stk/call_back/'
 MPESA_B2C_CALLBACK_URL = '/mpesa/b2c/call_back/'
 BASE_URL = config("BASE_URL", "http://127.0.0.1:8000")
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache"
+    }
+}

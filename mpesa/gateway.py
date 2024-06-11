@@ -7,6 +7,7 @@ import uuid
 import pytz
 from typing import Tuple, Any
 from django.conf import settings
+from django.core.cache import cache
 
 from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework.serializers import ValidationError
@@ -47,13 +48,17 @@ class MpesaGateWay:
         Returns:
             str: The access token.
         """
-        try:
-            basic_auth = HTTPBasicAuth(self.consumer_key, self.consumer_secret)
-            response = requests.get(self.access_token_url, auth=basic_auth)
-            token = json.loads(response.text)['access_token']
-        except Exception as e:
-            logging.error("Error {}".format(e))
-            raise ValidationError("Invalid credentials")
+        token = cache.get("mpesa_access_token")
+        if not token:
+            try:
+                basic_auth = HTTPBasicAuth(self.consumer_key, self.consumer_secret)
+                response = requests.get(self.access_token_url, auth=basic_auth)
+                response_data = json.loads(response.text)
+                token, expiry = response_data.get('access_token'),  response_data.get('expires_in')
+                cache.set(key="mpesa_access_token", value=token, timeout=float(expiry))
+            except Exception as e:
+                logging.error("Error {}".format(e))
+                raise ValidationError("Invalid credentials")
         return token
 
     def generate_password(self) -> Tuple[str, str]:
