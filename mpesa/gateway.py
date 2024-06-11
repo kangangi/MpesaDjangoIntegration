@@ -2,6 +2,8 @@ import base64
 import json
 import logging
 import datetime
+import uuid
+
 import pytz
 from typing import Tuple, Any
 from django.conf import settings
@@ -38,8 +40,6 @@ class MpesaGateWay:
         self.b2c_url = settings.MPESA_B2C_URL
         self.b2c_callback_url = settings.BASE_URL + settings.MPESA_B2C_CALLBACK_URL
         self.security_credentials = settings.MPESA_SECURITY_CREDENTIALS
-
-        self.headers = ""
 
     def get_access_token(self) -> str:
         """
@@ -213,7 +213,9 @@ class MpesaGateWay:
         Returns:
         dict: A dictionary containing the response data from the B2C payment request.
         """
+        originator_conversation_id = str(uuid.uuid4())
         payload = {
+            "OriginatorConversationID": originator_conversation_id,
             "InitiatorName": self.username[0],
             "SecurityCredential": self.security_credentials,
             "CommandID": "BusinessPayment",
@@ -226,7 +228,15 @@ class MpesaGateWay:
             "Occassion": occassion,
         }
 
-        response = requests.request("POST", self.b2c_url, headers=self.headers, data=json.dumps(payload))
+        response = requests.request(
+            "POST",
+            self.b2c_url,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.get_access_token()),
+            },
+            data=json.dumps(payload)
+        )
         response_data = response.json()
 
         if response.status_code == 200:
@@ -236,7 +246,10 @@ class MpesaGateWay:
                 conversation_id=conversation_id,
                 ip=ip,
                 occassion=occassion,
-                remarks=remarks
+                remarks=remarks,
+                originator_conversation_id=originator_conversation_id,
+                recipient_phonenumber=phone_number,
+                transaction_amount=amount
             )
         return response_data
 
@@ -285,8 +298,8 @@ class MpesaGateWay:
         """
         Handles the successful B2C payment transaction by updating the transaction object with relevant details.
 
-        Extracts various parameters from the 'ResultParameters' field in the data, such as the transaction amount,
-        receiver's phone number and public key, and transaction completion time, and updates the B2CTransaction object.
+        Extracts various parameters from the 'ResultParameters' field in the data, such as the transaction id,
+        receiver's public name, and transaction completion time, and updates the B2CTransaction object.
 
         Parameters:
         data (dict): The dictionary containing the response data from the successful B2C transaction.
@@ -300,11 +313,8 @@ class MpesaGateWay:
             "transaction_id": data["Result"]["TransactionID"]
         }
         for item in items:
-            if item["Key"] == "TransactionAmount":
-                update_fields["amount"] = item["Value"]
-            elif item["Key"] == "ReceiverPartyPublicKey":
+            if item["Key"] == "ReceiverPartyPublicKey":
                 receiver = items["Value"]
-                update_fields["recipient_phonenumber"] = receiver[0]
                 update_fields["recipient_public_Key"] = receiver[1]
             elif item["Key"] == "TransactionCompletedDateTime":
                 date = items["Value"]

@@ -44,6 +44,7 @@ class B2CTransaction(BaseModel):
     ip = models.CharField(max_length=200, blank=True, null=True)
     occassion = models.CharField(max_length=200, blank=True, null=True)
     remarks = models.CharField(max_length=200, blank=True, null=True)
+    originator_conversation_id = models.CharField(max_length=255, unique=True, default=uuid.uuid4, blank=True)
 
     class Meta:
         verbose_name = _('B2CTransaction')
