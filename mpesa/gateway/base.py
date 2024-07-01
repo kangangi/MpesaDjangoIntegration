@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Any
 
 from django.conf import settings
 from django.core.cache import cache
@@ -24,14 +25,6 @@ class MpesaBase:
         self.access_token_url = settings.MPESA_ACCESS_TOKEN_URL
         self.username = settings.MPESA_USERNAME
 
-        self.stk_push_url = settings.MPESA_STK_PUSH_URL
-        self.stk_callback_url = settings.BASE_URL + settings.MPESA_STK_CALLBACK_URL
-        self.api_key = settings.MPESA_API_KEY
-
-        self.b2c_url = settings.MPESA_B2C_URL
-        self.b2c_callback_url = settings.BASE_URL + settings.MPESA_B2C_CALLBACK_URL
-        self.security_credentials = settings.MPESA_SECURITY_CREDENTIALS
-
     def get_access_token(self) -> str:
         """
         Retrieves the access token required for making requests to the M-Pesa API.
@@ -50,4 +43,26 @@ class MpesaBase:
                 logging.error("Error {}".format(e))
                 raise ValidationError("Invalid credentials")
         return token
+
+    def check_status(self, data: dict) -> Any:
+        """
+        Checks the status of a payment transaction from the provided data.
+
+        Extracts the status code from the 'Result' field in the data. If there is an exception
+        (e.g., the 'Result' field is missing), it logs the error and defaults the status to 1.
+
+        Parameters:
+        data (dict): The dictionary containing the response data from the B2C transaction.
+
+        Returns:
+        Any: The status code of the transaction. Returns 1 if an error occurs during extraction.
+        """
+        try:
+            status = data["Result"]["ResultCode"]
+            if status != 0:
+                status = 1
+        except Exception as e:
+            logging.error(e)
+            status = 1
+        return status
 

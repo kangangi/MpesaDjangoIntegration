@@ -49,3 +49,28 @@ class B2CTransaction(BaseModel):
     class Meta:
         verbose_name = _('B2CTransaction')
         verbose_name_plural = _('B2CTransactions')
+
+
+class B2BTransaction(BaseModel):
+    STATUS = ((0, "Complete"), (1, "Pending"),)
+    conversation_id = models.CharField(max_length=255, unique=True)
+    transaction_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    status = models.CharField(max_length=10, choices=STATUS, default=1)
+    ip = models.CharField(max_length=200, blank=True, null=True)
+    remarks = models.CharField(max_length=200, blank=True, null=True)
+    originator_conversation_id = models.CharField(max_length=255, unique=True, default=uuid.uuid4, blank=True)
+    amount = models.IntegerField()
+    debit_account_balance = models.CharField(max_length=255, null=True, blank=True)
+    debit_party_affected_account_balance = models.CharField(max_length=255, null=True, blank=True)
+    debit_party_charges = models.IntegerField( null=True, blank=True)
+    transaction_time = models.DateTimeField(null=True, blank=True)
+    recipient_public_name = models.CharField(max_length=255, null=True, blank=True)
+    currency = models.CharField(max_length=255, null=True, blank=True)
+    paybill_number = models.IntegerField(null=True, blank=True)
+    account_reference = models.CharField(max_length=255, null=True, blank=True)
+    initiator_account_current_balance = models.CharField(max_length=255, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('B2BTransaction')
+        verbose_name_plural = _('B2BTransactions')
+

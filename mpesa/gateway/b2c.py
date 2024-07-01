@@ -1,29 +1,21 @@
-import base64
 import json
 import logging
 import datetime
 import uuid
 
-import pytz
-from typing import Tuple, Any
+from typing import Any
 from django.conf import settings
-from django.core.cache import cache
-
-from phonenumber_field.phonenumber import PhoneNumber
-from rest_framework.serializers import ValidationError
 from rest_framework.request import Request
 import requests
-from requests.auth import HTTPBasicAuth
-
 from mpesa.gateway.base import MpesaBase
-from mpesa.models import STKTransaction, B2CTransaction
+from mpesa.models import B2CTransaction
 
 logging = logging.getLogger("default")
 
 
 class B2C(MpesaBase):
     """
-    A class for interacting with the M-Pesa API to perform STK Push transactions.
+    A class for interacting with the M-Pesa API to perform b2c transactions.
     """
     def __init__(self):
         """
@@ -93,28 +85,6 @@ class B2C(MpesaBase):
             )
         return response_data
 
-    def b2c_check_status(self, data: dict) -> Any:
-        """
-        Checks the status of a B2C payment transaction from the provided data.
-
-        Extracts the status code from the 'Result' field in the data. If there is an exception
-        (e.g., the 'Result' field is missing), it logs the error and defaults the status to 1.
-
-        Parameters:
-        data (dict): The dictionary containing the response data from the B2C transaction.
-
-        Returns:
-        Any: The status code of the transaction. Returns 1 if an error occurs during extraction.
-        """
-        try:
-            status = data["Result"]["ResultCode"]
-            if status != 0:
-                status = 1
-        except Exception as e:
-            logging.error(e)
-            status = 1
-        return status
-
     def b2c_get_transaction_object(self, data: dict) -> B2CTransaction:
         """
         Retrieves or creates a B2CTransaction object based on the conversation ID from the provided data.
@@ -178,7 +148,7 @@ class B2C(MpesaBase):
         Returns:
         B2CTransaction: The updated B2CTransaction object.
         """
-        status = self.b2c_check_status(data)
+        status = self.check_status(data)
         transaction = self.b2c_get_transaction_object(data)
         if status == 0:
             self.b2c_handle_successful_pay(data, transaction)

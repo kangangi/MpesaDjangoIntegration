@@ -139,19 +139,28 @@ MPESA_API_KEY = config("MPESA_API_KEY", "LGnjwBa8p4/NNGT8Z1XfC1Fo44h+td//yz51/4N
 MPESA_SHORT_CODE = config("MPESA_SHORT_CODE")
 MPESA_SECURITY_CREDENTIALS = config("MPESA_SECURITY_CREDENTIALS", "LGnjwBa8p4/NNGT8Z1XfC1Fo44h+td//yz51/4NRQL0+rqEQC")
 MPESA_USERNAME = config("MPESA_USERNAME", "sandbox_app")
+MPESA_C2B_DEFAULT_RESPONSE = config("MPESA_C2B_DEFAULT_RESPONSE", "Complete")
+
 
 ENV = config("EVIRONMENT", "dev")
 if ENV == "production":
     MPESA_ACCESS_TOKEN_URL = 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
     MPESA_STK_PUSH_URL = 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
     MPESA_B2C_URL = 'https://api.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
+    MPESA_C2B_REGISTER_URL = "https://api.safaricom.co.ke/mpesa/c2b/v1/registerurl"
+    MPESA_B2B_URL = 'https://api.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
 else:
     MPESA_ACCESS_TOKEN_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
     MPESA_STK_PUSH_URL = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
     MPESA_B2C_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2c/v3/paymentrequest'
+    MPESA_C2B_REGISTER_URL = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
+    MPESA_B2B_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
 
 MPESA_STK_CALLBACK_URL = '/mpesa/stk/call_back/'
 MPESA_B2C_CALLBACK_URL = '/mpesa/b2c/call_back/'
+MPESA_C2B_CONFIRMATION_URL = 'mpesa/c2b/confirm/'
+MPESA_C2B_VALIDATION_URL = 'mpesa/c2b/validate/'
+MPESA_B2B_CALLBALC_URL = 'mpesa/b2b/call_back/'
 BASE_URL = config("BASE_URL", "http://127.0.0.1:8000")
 
 

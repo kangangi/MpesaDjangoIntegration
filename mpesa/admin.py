@@ -1,5 +1,5 @@
 from django.contrib import admin
-from mpesa.models import STKTransaction, B2CTransaction
+from mpesa.models import STKTransaction, B2CTransaction, B2BTransaction
 
 @admin.register(STKTransaction)
 class STKTransactionModelAdmin(admin.ModelAdmin):
@@ -14,3 +14,12 @@ class B2CTransactionModelAdmin(admin.ModelAdmin):
     )
     list_filter = ("status",)
     search_fields = ("recipient_phone_number", "transaction_id",)
+
+
+@admin.register(B2BTransaction)
+class B2BTransactionModelAdmin(admin.ModelAdmin):
+    list_display = (
+        "conversation_id",  "transaction_id", "paybill_number", "account_reference", "transaction_amount"
+    )
+    list_filter = ("status",)
+    search_fields = ("paybill_number", "transaction_id",)
