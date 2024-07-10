@@ -19,7 +19,7 @@ class B2CTransactionModelAdmin(admin.ModelAdmin):
 @admin.register(B2BTransaction)
 class B2BTransactionModelAdmin(admin.ModelAdmin):
     list_display = (
-        "conversation_id",  "transaction_id", "paybill_number", "account_reference", "transaction_amount"
+        "conversation_id",  "transaction_id", "paybill_number", "account_reference", "amount"
     )
     list_filter = ("status",)
     search_fields = ("paybill_number", "transaction_id",)

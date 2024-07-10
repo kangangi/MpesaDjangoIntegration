@@ -9,9 +9,10 @@ from mpesa.gateway.express import Express
 from mpesa.gateway.b2b import B2B
 from mpesa.gateway.b2c import B2C
 from mpesa.gateway.c2b import C2B
+from mpesa.gateway.dynamicqr import DynamicQR
 from mpesa.serializers import (
     STKTransactionSerializer, STKCheckoutSerializer, B2CCheckoutSerializer, B2CTransactionSerializer,
-    B2BCheckoutSerializer, B2BTransactionSerializer
+    B2BCheckoutSerializer, B2BTransactionSerializer, DynamicQRInputSerializer
 )
 
 class STKCheckout(APIView):
@@ -94,3 +95,14 @@ class B2BCallBack(APIView):
         b2b = B2B()
         response = b2b.b2b_callback_handler(json.loads(data))
         return Response(B2BTransactionSerializer(response).data, status=status.HTTP_200_OK)
+
+
+class DynamicQRView(APIView):
+    permission_classes = (AllowAny, )
+
+    def post(self, request):
+        serializer = DynamicQRInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        dynamic_qr = DynamicQR()
+        response = dynamic_qr.generate_qr(**serializer.validated_data)
+        return Response(response)

@@ -149,12 +149,14 @@ if ENV == "production":
     MPESA_B2C_URL = 'https://api.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
     MPESA_C2B_REGISTER_URL = "https://api.safaricom.co.ke/mpesa/c2b/v1/registerurl"
     MPESA_B2B_URL = 'https://api.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
+    MPESA_DYNAMIC_QR_URL = 'https://api.safaricom.co.ke//mpesa/qrcode/v1/generate'
 else:
     MPESA_ACCESS_TOKEN_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
     MPESA_STK_PUSH_URL = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
     MPESA_B2C_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2c/v3/paymentrequest'
     MPESA_C2B_REGISTER_URL = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
     MPESA_B2B_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
+    MPESA_DYNAMIC_QR_URL = 'https://sandbox.safaricom.co.ke/mpesa/qrcode/v1/generate'
 
 MPESA_STK_CALLBACK_URL = '/mpesa/stk/call_back/'
 MPESA_B2C_CALLBACK_URL = '/mpesa/b2c/call_back/'

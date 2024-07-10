@@ -1,5 +1,6 @@
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
+from rest_framework.serializers import ValidationError
 from mpesa.models import STKTransaction, B2CTransaction, B2BTransaction
 
 class STKTransactionSerializer(serializers.ModelSerializer):
@@ -73,5 +74,43 @@ class B2BCheckoutSerializer(serializers.Serializer):
         if remarks == "":
             attrs["remarks"] = "{}-{}".format(phone_number, amount)
         return attrs
+
+
+class DynamicQRInputSerializer(serializers.Serializer):
+    trx_code_mapping = {
+        "BuyGoods": "BG",
+        "PayBill": "PB",
+        "SendMoney": "SM",
+        "Withdraw": "WA",
+        "SendToBusiness": "SB"
+
+    }
+
+    merchant_name = serializers.CharField()
+    reference = serializers.CharField()
+    amount = serializers.IntegerField()
+    transaction_type = serializers.ChoiceField(
+        choices=["BuyGoods", "PayBill", "SendMoney", "Withdraw", "SentToBusiness"]
+    )
+    party_identifier = serializers.CharField(required=False)
+    phone_number = PhoneNumberField(required=False)
+
+    def validate(self, attrs):
+        transaction_type = attrs.pop('transaction_type',)
+        attrs['transaction_type'] = self.trx_code_mapping.get(transaction_type)
+
+        phone_number = attrs.pop('phone_number', None)
+        party_identifier = attrs.get("party_identifier")
+        if transaction_type in ["SendMoney", "SentToBusiness"]:
+            if not phone_number:
+                raise ValidationError("phone_number must be provided for SendMoney and SendToBusiness")
+            else:
+                attrs["party_identifier"] = str(phone_number)[1:]
+        else:
+            if not party_identifier:
+                raise ValidationError("Agent Till, Paybill or Merchant BuyGoods must be provided as a party_identifier")
+
+        return attrs
+
 
 
