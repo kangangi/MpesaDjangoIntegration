@@ -1,5 +1,5 @@
 from django.contrib import admin
-from mpesa.models import STKTransaction, B2CTransaction, B2BTransaction
+from daraja.models import STKTransaction, B2CTransaction, B2BTransaction
 
 @admin.register(STKTransaction)
 class STKTransactionModelAdmin(admin.ModelAdmin):

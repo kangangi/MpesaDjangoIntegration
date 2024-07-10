@@ -1,6 +1,6 @@
 from django.urls import path
 
-from mpesa.views import (
+from daraja.views import (
     STKCheckout, STKCallBack, B2CCheckout, B2CCallBack, C2BConfirmationCallBack, B2BCheckout, B2BCallBack, DynamicQRView,
 )
 

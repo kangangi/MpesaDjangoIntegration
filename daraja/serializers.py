@@ -1,7 +1,7 @@
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
-from mpesa.models import STKTransaction, B2CTransaction, B2BTransaction
+from daraja.models import STKTransaction, B2CTransaction, B2BTransaction
 
 class STKTransactionSerializer(serializers.ModelSerializer):
 

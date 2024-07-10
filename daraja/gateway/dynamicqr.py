@@ -1,7 +1,7 @@
 from django.conf import settings
 import json
 import requests
-from mpesa.gateway.base import MpesaBase
+from daraja.gateway.base import MpesaBase
 
 
 class DynamicQR(MpesaBase):

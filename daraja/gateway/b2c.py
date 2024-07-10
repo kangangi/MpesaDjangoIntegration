@@ -7,8 +7,8 @@ from typing import Any
 from django.conf import settings
 from rest_framework.request import Request
 import requests
-from mpesa.gateway.base import MpesaBase
-from mpesa.models import B2CTransaction
+from daraja.gateway.base import MpesaBase
+from daraja.models import B2CTransaction
 
 logging = logging.getLogger("default")
 

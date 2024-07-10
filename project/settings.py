@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'mpesa'
+    'daraja'
 ]
 
 MIDDLEWARE = [
@@ -158,11 +158,11 @@ else:
     MPESA_B2B_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
     MPESA_DYNAMIC_QR_URL = 'https://sandbox.safaricom.co.ke/mpesa/qrcode/v1/generate'
 
-MPESA_STK_CALLBACK_URL = '/mpesa/stk/call_back/'
-MPESA_B2C_CALLBACK_URL = '/mpesa/b2c/call_back/'
-MPESA_C2B_CONFIRMATION_URL = 'mpesa/c2b/confirm/'
-MPESA_C2B_VALIDATION_URL = 'mpesa/c2b/validate/'
-MPESA_B2B_CALLBALC_URL = 'mpesa/b2b/call_back/'
+MPESA_STK_CALLBACK_URL = '/daraja/stk/call_back/'
+MPESA_B2C_CALLBACK_URL = '/daraja/b2c/call_back/'
+MPESA_C2B_CONFIRMATION_URL = 'daraja/c2b/confirm/'
+MPESA_C2B_VALIDATION_URL = 'daraja/c2b/validate/'
+MPESA_B2B_CALLBALC_URL = 'daraja/b2b/call_back/'
 BASE_URL = config("BASE_URL", "http://127.0.0.1:8000")
 
 

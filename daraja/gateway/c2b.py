@@ -1,33 +1,60 @@
 import base64
-import logging
+import json
 import datetime
-
-import pytz
 from typing import Tuple
+
 from django.conf import settings
-
 from phonenumber_field.phonenumber import PhoneNumber
-from rest_framework.request import Request
+import pytz
 import requests
+from rest_framework.request import Request
 
-from mpesa.gateway.base import MpesaBase
-from mpesa.models import STKTransaction
-
-logging = logging.getLogger("default")
+from daraja.gateway.base import MpesaBase
+from daraja.models import STKTransaction
 
 
-class Express(MpesaBase):
+class C2B(MpesaBase):
     """
-    A class for interacting with the M-Pesa API to perform STK Push transactions.
+    A class for interacting with the M-Pesa API to perform C2B transactions.
     """
     def __init__(self):
         """
         Initializes the MpesaGateWay with necessary configurations.
         """
         super().__init__()
+        self.c2b_register_url = settings.MPESA_C2B_REGISTER_URL
+        self.default_response = settings.MPESA_C2B_DEFAULT_RESPONSE
+        self.confirmation_url = settings.MPESA_C2B_CONFIRMATION_URL
+        self.validation_url = settings.MPESA_C2B_VALIDATION_URL
         self.stk_push_url = settings.MPESA_STK_PUSH_URL
         self.stk_callback_url = settings.BASE_URL + settings.MPESA_STK_CALLBACK_URL
         self.api_key = settings.MPESA_API_KEY
+
+    def register_c2b_urls(self):
+        payload = {
+            "ShortCode": self.short_code,
+            "ResponseType": self.default_response,
+            "ConfirmationURL": self.confirmation_url,
+            "ValidationURL": self.validation_url
+        }
+
+        response = requests.request(
+            "POST",
+            self.c2b_register_url,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.get_access_token()),
+            },
+            data=json.dumps(payload)
+        )
+        response_data = response.json()
+        return response_data
+
+    def validation_handler(self, data, validation_parameter):
+        pass
+
+    def confirmation_handler(self, data):
+        pass
 
     def generate_password(self) -> Tuple[str, str]:
         """

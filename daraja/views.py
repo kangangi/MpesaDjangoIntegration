@@ -5,12 +5,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from mpesa.gateway.express import Express
-from mpesa.gateway.b2b import B2B
-from mpesa.gateway.b2c import B2C
-from mpesa.gateway.c2b import C2B
-from mpesa.gateway.dynamicqr import DynamicQR
-from mpesa.serializers import (
+from daraja.gateway.b2b import B2B
+from daraja.gateway.b2c import B2C
+from daraja.gateway.c2b import C2B
+from daraja.gateway.dynamicqr import DynamicQR
+from daraja.serializers import (
     STKTransactionSerializer, STKCheckoutSerializer, B2CCheckoutSerializer, B2CTransactionSerializer,
     B2BCheckoutSerializer, B2BTransactionSerializer, DynamicQRInputSerializer
 )
@@ -21,8 +20,8 @@ class STKCheckout(APIView):
     def post(self, request):
         serializer = STKCheckoutSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        express = Express()
-        response = express.stk_push(request=request, **serializer.validated_data)
+        c2b = C2B()
+        response = c2b.stk_push(request=request, **serializer.validated_data)
         return Response(response)
 
 
@@ -34,8 +33,8 @@ class STKCallBack(APIView):
 
     def post(self, request):
         data = request.body
-        express = Express()
-        response = express.stk_callback_handler(json.loads(data))
+        c2b = C2B()
+        response = c2b.stk_callback_handler(json.loads(data))
         return Response(STKTransactionSerializer(response).data, status=status.HTTP_200_OK)
 
 
