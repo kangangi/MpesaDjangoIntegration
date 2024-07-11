@@ -149,7 +149,8 @@ if ENV == "production":
     MPESA_B2C_URL = 'https://api.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
     MPESA_C2B_REGISTER_URL = "https://api.safaricom.co.ke/mpesa/c2b/v1/registerurl"
     MPESA_B2B_URL = 'https://api.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
-    MPESA_DYNAMIC_QR_URL = 'https://api.safaricom.co.ke//mpesa/qrcode/v1/generate'
+    MPESA_DYNAMIC_QR_URL = 'https://api.safaricom.co.ke/mpesa/qrcode/v1/generate'
+    MPESA_B2C_TOPUP_URL = 'https://api.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
 else:
     MPESA_ACCESS_TOKEN_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
     MPESA_STK_PUSH_URL = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
@@ -157,12 +158,14 @@ else:
     MPESA_C2B_REGISTER_URL = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
     MPESA_B2B_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
     MPESA_DYNAMIC_QR_URL = 'https://sandbox.safaricom.co.ke/mpesa/qrcode/v1/generate'
+    MPESA_B2C_TOPUP_URL = 'https://sandbox.safaricom.co.ke/mpesa/b2b/v1/paymentrequest'
 
 MPESA_STK_CALLBACK_URL = '/daraja/stk/call_back/'
 MPESA_B2C_CALLBACK_URL = '/daraja/b2c/call_back/'
 MPESA_C2B_CONFIRMATION_URL = 'daraja/c2b/confirm/'
 MPESA_C2B_VALIDATION_URL = 'daraja/c2b/validate/'
-MPESA_B2B_CALLBALC_URL = 'daraja/b2b/call_back/'
+MPESA_B2B_CALLBACK_URL = 'daraja/b2b/call_back/'
+MPESA_B2C_TOPUP_CALLBACK_URL = 'daraja/b2c/topup/callback/'
 BASE_URL = config("BASE_URL", "http://127.0.0.1:8000")
 
 

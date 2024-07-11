@@ -8,7 +8,7 @@ from django.conf import settings
 from rest_framework.request import Request
 import requests
 from daraja.gateway.base import MpesaBase
-from daraja.models import B2CTransaction
+from daraja.models import B2CTransaction, B2CTopup
 
 logging = logging.getLogger("default")
 
@@ -25,6 +25,8 @@ class B2C(MpesaBase):
         self.b2c_url = settings.MPESA_B2C_URL
         self.b2c_callback_url = settings.BASE_URL + settings.MPESA_B2C_CALLBACK_URL
         self.security_credentials = settings.MPESA_SECURITY_CREDENTIALS
+        self.b2c_topup_url = settings.MPESA_B2C_TOPUP_URL
+        self.b2c_topup_callback_url = settings.MPESA_B2C_TOPUP_CALLBACK_URL
 
     def b2c_send(self, request: Request, amount: int, phone_number: str, occassion: str, remarks: str) -> dict:
         """
@@ -157,3 +159,45 @@ class B2C(MpesaBase):
         transaction.save()
 
         return transaction
+
+    def b2c_top_up(self, amount: int, paybill: int, remarks: str, requester_phone_number="", reference="", request=None):
+
+        payload = {
+           "Initiator": self.username[0],
+           "SecurityCredential": self.security_credentials,
+           "CommandID": "BusinessPayToBulk",
+           "SenderIdentifierType": "4",
+           "RecieverIdentifierType": "4",
+           "Amount": amount,
+           "PartyA": self.short_code,
+           "PartyB": paybill,
+           "AccountReference": reference,
+           "Requester": requester_phone_number,
+           "Remarks": remarks,
+           "QueueTimeOutURL": self.b2c_topup_callback_url,
+           "ResultURL": self.b2c_topup_callback_url
+        }
+
+        response = requests.request(
+            "POST",
+            self.b2c_topup_url,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.get_access_token()),
+            },
+            data=json.dumps(payload)
+        )
+        response_data = response.json()
+
+        if response.status_code == 200:
+            conversation_id = response_data.get('ConversationID')
+            ip_address = request.META.get("REMOTE_ADDR") if request else ""
+            B2CTopup.objects.create(
+                conversation_id=conversation_id,
+                reference=reference,
+                remarks=remarks,
+                ip_address=ip_address,
+                requester=requester_phone_number,
+                amount=amount
+            )
+        return response_data
