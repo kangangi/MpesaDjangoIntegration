@@ -31,7 +31,7 @@ class STKTransaction(BaseModel):
         verbose_name_plural = _("STKTransactions")
 
 class B2CTransaction(BaseModel):
-    STATUS = ((0, "Complete"), (1, "Pending"),)
+    STATUS = ((0, "Complete"), (1, "Pending"),  (2, "Failed"),)
     conversation_id = models.CharField(max_length=255, unique=True)
     transaction_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     transaction_amount = models.PositiveIntegerField(null=True, blank=True)
@@ -42,7 +42,7 @@ class B2CTransaction(BaseModel):
     recipient_public_name = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS, default=1)
     ip_address = models.CharField(max_length=200, blank=True, null=True)
-    occassion = models.CharField(max_length=200, blank=True, null=True)
+    occasion = models.CharField(max_length=200, blank=True, null=True)
     remarks = models.CharField(max_length=200, blank=True, null=True)
     is_recipient_registered_customer = models.BooleanField(blank=True, null=True)
     charges_paid_available_balance = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
@@ -54,7 +54,7 @@ class B2CTransaction(BaseModel):
 
 
 class B2BTransaction(BaseModel):
-    STATUS = ((0, "Complete"), (1, "Pending"),)
+    STATUS = ((0, "Complete"), (1, "Pending"), (2, "Failed"))
     conversation_id = models.CharField(max_length=255, unique=True)
     transaction_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     status = models.CharField(max_length=10, choices=STATUS, default=1)
@@ -78,11 +78,10 @@ class B2BTransaction(BaseModel):
 
 
 class B2CTopup(BaseModel):
-    STATUS = ((0, "Complete"), (1, "Pending"),)
+    STATUS = ((0, "Complete"), (1, "Pending"), (2, "Failed"), )
     transaction_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     status = models.CharField(max_length=10, choices=STATUS, default=1)
-    originator_conversation_id = models.CharField(max_length=255, blank=True, null=True)
-    bill_reference_number = models.CharField(max_length=255, blank=True, null=True)
+    conversation_id = models.CharField(max_length=255, blank=True, null=True)
     debit_account_balance = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
     transaction_time = models.DateTimeField(null=True, blank=True)
     amount = models.IntegerField()
@@ -93,6 +92,8 @@ class B2CTopup(BaseModel):
     ip_address = models.CharField(max_length=200, blank=True, null=True)
     remarks = models.CharField(max_length=200, blank=True, null=True)
     initiator_account_current_balance = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
+    paybill_number = models.CharField(max_length=50)
+    account_reference = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         verbose_name = _('B2CTopup')

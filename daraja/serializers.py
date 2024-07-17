@@ -28,17 +28,11 @@ class STKCheckoutSerializer(serializers.Serializer):
         return attrs
 
 
-class B2CTransactionSerializer(serializers.Serializer):
-
-    class Meta:
-        model = B2CTransaction
-        fields = "__all__"
-
 class B2CCheckoutSerializer(serializers.Serializer):
     phone_number = PhoneNumberField()
     amount = serializers.IntegerField(min_value=1)
     remarks = serializers.CharField(default="")
-    occassion = serializers.CharField(default="")
+    occasion = serializers.CharField(default="")
 
     def validate(self, attrs):
         phone_number = attrs.pop("phone_number")
@@ -49,7 +43,7 @@ class B2CCheckoutSerializer(serializers.Serializer):
         if remarks == "":
             attrs["remarks"] = "{}-{}".format(phone_number, amount)
         if occasion == "":
-            attrs["occassion"] = "{}-{}".format(phone_number, amount)
+            attrs["occasion"] = "{}-{}".format(phone_number, amount)
         return attrs
 
 class B2BTransactionSerializer(serializers.Serializer):
@@ -113,4 +107,15 @@ class DynamicQRInputSerializer(serializers.Serializer):
         return attrs
 
 
+class B2CTopupInputSerializer(serializers.Serializer):
+    amount = serializers.IntegerField()
+    paybill_number = serializers.IntegerField()
+    remarks = serializers.CharField()
+    requester_phone_number = PhoneNumberField(required=False)
+    account_reference = serializers.CharField(required=False)
 
+    def validate(self, attrs):
+        phone_number = attrs.pop("phone_number", None)
+        if phone_number:
+            attrs["phone_number"] = str(phone_number)[1:]
+        return attrs

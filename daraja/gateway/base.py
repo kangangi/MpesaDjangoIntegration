@@ -58,11 +58,11 @@ class MpesaBase:
         Any: The status code of the transaction. Returns 1 if an error occurs during extraction.
         """
         try:
-            status = data["Result"]["ResultCode"]
+            status = int(data["Result"]["ResultCode"])
             if status != 0:
-                status = 1
+                status = 2
         except Exception as e:
             logging.error(e)
-            status = 1
+            status = 2
         return status
 

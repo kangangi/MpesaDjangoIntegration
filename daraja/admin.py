@@ -1,5 +1,5 @@
 from django.contrib import admin
-from daraja.models import STKTransaction, B2CTransaction, B2BTransaction
+from daraja.models import STKTransaction, B2CTransaction, B2BTransaction, B2CTopup
 
 @admin.register(STKTransaction)
 class STKTransactionModelAdmin(admin.ModelAdmin):
@@ -23,3 +23,12 @@ class B2BTransactionModelAdmin(admin.ModelAdmin):
     )
     list_filter = ("status",)
     search_fields = ("paybill_number", "transaction_id",)
+
+@admin.register(B2CTopup)
+class B2CTopupModelAdmin(admin.ModelAdmin):
+    list_display = (
+        "conversation_id",  "transaction_id", "paybill_number", "account_reference", "amount"
+    )
+    list_filter = ("status",)
+    search_fields = ("paybill_number", "transaction_id",)
+

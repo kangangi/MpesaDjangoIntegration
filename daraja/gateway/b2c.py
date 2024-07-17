@@ -1,6 +1,7 @@
 import json
 import logging
 import datetime
+import re
 import uuid
 
 from typing import Any
@@ -26,9 +27,9 @@ class B2C(MpesaBase):
         self.b2c_callback_url = settings.BASE_URL + settings.MPESA_B2C_CALLBACK_URL
         self.security_credentials = settings.MPESA_SECURITY_CREDENTIALS
         self.b2c_topup_url = settings.MPESA_B2C_TOPUP_URL
-        self.b2c_topup_callback_url = settings.MPESA_B2C_TOPUP_CALLBACK_URL
+        self.b2c_topup_callback_url = settings.BASE_URL + settings.MPESA_B2C_TOPUP_CALLBACK_URL
 
-    def b2c_send(self, request: Request, amount: int, phone_number: str, occassion: str, remarks: str) -> dict:
+    def b2c_send(self, request: Request, amount: int, phone_number: str, occasion: str, remarks: str) -> dict:
         """
         Sends a B2C (Business to Customer) payment request to the specified phone number.
 
@@ -59,7 +60,7 @@ class B2C(MpesaBase):
             "Remarks": remarks,
             "QueueTimeOutURL": self.b2c_callback_url,
             "ResultURL": self.b2c_callback_url,
-            "Occassion": occassion,
+            "Occassion": occasion,
         }
 
         response = requests.request(
@@ -78,8 +79,8 @@ class B2C(MpesaBase):
             ip = request.META.get("REMOTE_ADDR")
             B2CTransaction.objects.create(
                 conversation_id=conversation_id,
-                ip=ip,
-                occassion=occassion,
+                ip_address=ip,
+                occasion=occasion,
                 remarks=remarks,
                 originator_conversation_id=originator_conversation_id,
                 recipient_phonenumber=phone_number,
@@ -100,7 +101,7 @@ class B2C(MpesaBase):
         Returns:
         B2CTransaction: The retrieved or newly created B2CTransaction object.
         """
-        conversation_id = data["Result"]["ConversationId"]
+        conversation_id = data["Result"]["ConversationID"]
         transaction, _ = B2CTransaction.objects.get_or_create(
             conversation_id=conversation_id
         )
@@ -121,19 +122,26 @@ class B2C(MpesaBase):
         B2CTransaction: The updated B2CTransaction object.
         """
         items = data["Result"]["ResultParameters"]["ResultParameter"]
-        update_fields = {
-            "transaction_id": data["Result"]["TransactionID"]
-        }
+        transaction.transaction_id = data["Result"]["TransactionID"]
+
         for item in items:
-            if item["Key"] == "ReceiverPartyPublicKey":
-                receiver = items["Value"]
-                update_fields["recipient_public_Key"] = receiver[1]
+            if item["Key"] == "ReceiverPartyPublicName":
+                receiver = item["Value"].split("-")
+                transaction.recipient_public_name = receiver[1].strip()
             elif item["Key"] == "TransactionCompletedDateTime":
-                date = items["Value"]
-                update_fields["transaction_time"] = datetime.datetime.strptime(date, '%d.%m.%Y %H:%M:%S')
+                date = item["Value"]
+                transaction.transaction_time = datetime.datetime.strptime(date, '%d.%m.%Y %H:%M:%S')
+            elif item["Key"] == "B2CRecipientIsRegisteredCustomer":
+                data = item["Value"]
+                transaction.is_recipient_registered_customer = True if data == "Y" else False
+            elif item["Key"] == "B2CChargesPaidAccountAvailableFunds":
+                transaction.charges_paid_available_balance = item["Value"]
+            elif item["Key"] == "B2CUtilityAccountAvailableFunds":
+                transaction.utility_account_balance = item["Value"]
+            elif item["Key"] == "B2CWorkingAccountAvailableFunds":
+                transaction.working_account_balance = item["Value"]
 
-        transaction.update(**update_fields)  # type: ignore
-
+        transaction.save()
         return transaction
 
     def b2c_callback_handler(self, data: dict) -> B2CTransaction:
@@ -160,7 +168,11 @@ class B2C(MpesaBase):
 
         return transaction
 
-    def b2c_top_up(self, amount: int, paybill: int, remarks: str, requester_phone_number="", reference="", request=None):
+    def b2c_top_up(
+            self, amount: int, paybill_number: int, remarks: str, requester_phone_number="", account_reference="",
+            request=None
+    ):
+
 
         payload = {
            "Initiator": self.username[0],
@@ -170,8 +182,8 @@ class B2C(MpesaBase):
            "RecieverIdentifierType": "4",
            "Amount": amount,
            "PartyA": self.short_code,
-           "PartyB": paybill,
-           "AccountReference": reference,
+           "PartyB": paybill_number,
+           "AccountReference": account_reference,
            "Requester": requester_phone_number,
            "Remarks": remarks,
            "QueueTimeOutURL": self.b2c_topup_callback_url,
@@ -194,10 +206,69 @@ class B2C(MpesaBase):
             ip_address = request.META.get("REMOTE_ADDR") if request else ""
             B2CTopup.objects.create(
                 conversation_id=conversation_id,
-                reference=reference,
+                account_reference=account_reference,
                 remarks=remarks,
                 ip_address=ip_address,
                 requester=requester_phone_number,
-                amount=amount
+                amount=amount,
+                paybill_number=paybill_number,
+
             )
         return response_data
+
+    def b2c_get_transaction_topup_object(self, data: dict) -> B2CTopup:
+
+        conversation_id = data["Result"]["ConversationID"]
+        transaction, _ = B2CTopup.objects.get_or_create(
+            conversation_id=conversation_id
+        )
+        return transaction
+
+    def get_value(self, data, search_key):
+        # Create a dynamic regex pattern to search for the key and its value
+        pattern = "{}=(\d+\.\d+)".format(search_key)
+
+        # Use regular expression to find the value for the given key
+        match = re.search(pattern, data)
+        if match:
+            return match.group(1)
+        else:
+            return None
+
+    def b2c_handle_successful_topup(self, data: dict, transaction: B2CTopup) -> B2CTopup:
+        items = data["Result"]["ResultParameters"]["ResultParameter"]
+        transaction.transaction_id = data["Result"]["TransactionID"]
+
+        for item in items:
+            if item["Key"] == "DebitAccountBalance":
+                data = item["Value"]
+                transaction.debit_account_balance = self.get_value(data, "BasicAmount")
+            elif item["Key"] == "TransCompletedTime":
+                date = item["Value"]
+                transaction.transaction_time = datetime.datetime.strptime(date, '%Y%m%d%H%M%S')
+            elif item["Key"] == "InitiatorAccountCurrentBalance":
+                data = item["Value"]
+                transaction.initiator_account_current_balance = self.get_value(data, "BasicAmount")
+            elif item["Key"] == "Currency":
+                transaction.currency = item["Value"]
+            elif item["Key"] == "ReceiverPartyPublicName":
+                transaction.receiver_public_name= item["Value"]
+            elif item["Key"] == "DebitPartyCharges":
+                data = item["Value"]
+                transaction.debit_party_charges = data if data else None
+
+        transaction.save()
+
+        return transaction
+
+    def b2c_topup_callback_handler(self, data):
+        status = self.check_status(data)
+        transaction = self.b2c_get_transaction_topup_object(data)
+        if status == 0:
+            self.b2c_handle_successful_topup(data, transaction)
+        transaction.status = status
+        transaction.save()
+
+        return transaction
+
+

@@ -10,8 +10,8 @@ from daraja.gateway.b2c import B2C
 from daraja.gateway.c2b import C2B
 from daraja.gateway.dynamicqr import DynamicQR
 from daraja.serializers import (
-    STKTransactionSerializer, STKCheckoutSerializer, B2CCheckoutSerializer, B2CTransactionSerializer,
-    B2BCheckoutSerializer, B2BTransactionSerializer, DynamicQRInputSerializer
+    STKTransactionSerializer, STKCheckoutSerializer, B2CCheckoutSerializer, B2BCheckoutSerializer,
+    B2BTransactionSerializer, DynamicQRInputSerializer, B2CTopupInputSerializer
 )
 
 class STKCheckout(APIView):
@@ -58,8 +58,12 @@ class B2CCallBack(APIView):
     def post(self, request):
         data = request.body
         b2c = B2C()
-        response = b2c.b2c_callback_handler(json.loads(data))
-        return Response(B2CTransactionSerializer(response).data, status=status.HTTP_200_OK)
+        try:
+            json_data = json.loads(data)
+            b2c.b2c_callback_handler(json_data)
+        except json.decoder.JSONDecodeError:
+            return Response("Invalid json", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Response received", status=status.HTTP_200_OK)
 
 
 class C2BConfirmationCallBack(APIView):
@@ -68,8 +72,8 @@ class C2BConfirmationCallBack(APIView):
     def post(self, request):
         data = request.body
         c2b = C2B()
-        response = c2b.confirmation_handler(json.loads(data))
-        return Response(B2CTransactionSerializer(response).data, status=status.HTTP_200_OK)
+        c2b.confirmation_handler(json.loads(data))
+        return Response("Response received", status=status.HTTP_200_OK)
 
 
 class B2BCheckout(APIView):
@@ -104,4 +108,30 @@ class DynamicQRView(APIView):
         serializer.is_valid(raise_exception=True)
         dynamic_qr = DynamicQR()
         response = dynamic_qr.generate_qr(**serializer.validated_data)
-        return Response(response)
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class B2CTopup(APIView):
+    permission_classes = (AllowAny, )
+
+    def post(self, request):
+        serializer = B2CTopupInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        b2c = B2C()
+        response = b2c.b2c_top_up(request=request, **serializer.validated_data)
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class B2CTopUpCallback(APIView):
+    permission_classes = (AllowAny, )
+
+    def post(self, request):
+        data = request.body
+        b2c = B2C()
+        try:
+            json_data = json.loads(data)
+            b2c.b2c_topup_callback_handler(json_data)
+        except json.decoder.JSONDecodeError:
+            return Response("Invalid json", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("Response received", status=status.HTTP_200_OK)
