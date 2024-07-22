@@ -54,19 +54,37 @@ class B2BTransactionSerializer(serializers.Serializer):
 
 class B2BCheckoutSerializer(serializers.Serializer):
     amount = serializers.IntegerField(min_value=1)
-    paybill_num = serializers.IntegerField()
-    account_num = serializers.CharField(),
+    recipient_type = serializers.ChoiceField(choices=['buygoods', 'paybill'])
+    paybill_number = serializers.IntegerField(required=False)
+    account_reference = serializers.CharField(required=False)
+    till_number = serializers.IntegerField(required=False)
     remarks = serializers.CharField(required=False)
     phone_number = PhoneNumberField(required=False)
 
     def validate(self, attrs):
-        phone_number = attrs.pop("phone_number")
+        phone_number = attrs.pop("phone_number", None)
+        paybill_number = attrs.pop("paybill_number", None)
+        till_number = attrs.pop("till_number", None)
+        account_reference = attrs.get("account_reference", None)
+        recipient_type = attrs.get('recipient_type')
+
+        if recipient_type == 'buygoods':
+            if not till_number:
+                raise ValidationError("till_number must be provided for buygoods")
+            attrs['party_b'] = till_number
+        if recipient_type == 'paybill':
+            if not (paybill_number or account_reference):
+                raise ValidationError("paybill_number and account_reference must be provided for paybill")
+            attrs['party_b'] = paybill_number
         if phone_number:
             attrs["phone_number"] = str(phone_number)[1:]
-        remarks = attrs.get("remarks", )
+        remarks = attrs.pop("remarks", None )
         amount = attrs.get("amount")
-        if remarks == "":
-            attrs["remarks"] = "{}-{}".format(phone_number, amount)
+        if not remarks:
+            attrs["remarks"] = "{}-{}".format(till_number if till_number else paybill_number, amount)
+
+        from pprint import pprint
+        pprint(attrs)
         return attrs
 
 

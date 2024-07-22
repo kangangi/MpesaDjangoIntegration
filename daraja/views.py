@@ -96,8 +96,12 @@ class B2BCallBack(APIView):
     def post(self, request):
         data = request.body
         b2b = B2B()
-        response = b2b.b2b_callback_handler(json.loads(data))
-        return Response(B2BTransactionSerializer(response).data, status=status.HTTP_200_OK)
+        try:
+            json_data = json.loads(data)
+            b2b.b2b_callback_handler(json_data)
+        except json.decoder.JSONDecodeError:
+            return Response("Invalid json", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Response received", status=status.HTTP_200_OK)
 
 
 class DynamicQRView(APIView):

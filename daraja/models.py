@@ -55,6 +55,7 @@ class B2CTransaction(BaseModel):
 
 class B2BTransaction(BaseModel):
     STATUS = ((0, "Complete"), (1, "Pending"), (2, "Failed"))
+    RECIPIENT_TYPE = (('paybill', "PayBill"), ('buygoods', 'BuyGoods'))
     conversation_id = models.CharField(max_length=255, unique=True)
     transaction_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     status = models.CharField(max_length=10, choices=STATUS, default=1)
@@ -62,15 +63,17 @@ class B2BTransaction(BaseModel):
     remarks = models.CharField(max_length=200, blank=True, null=True)
     originator_conversation_id = models.CharField(max_length=255, unique=True, default=uuid.uuid4, blank=True)
     amount = models.IntegerField()
-    debit_account_balance = models.CharField(max_length=255, null=True, blank=True)
-    debit_party_affected_account_balance = models.CharField(max_length=255, null=True, blank=True)
-    debit_party_charges = models.IntegerField( null=True, blank=True)
+    debit_account_balance = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    debit_party_charges = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
     transaction_time = models.DateTimeField(null=True, blank=True)
     recipient_public_name = models.CharField(max_length=255, null=True, blank=True)
     currency = models.CharField(max_length=255, null=True, blank=True)
-    paybill_number = models.IntegerField(null=True, blank=True)
+    recipient_number = models.IntegerField(null=True, blank=True)
     account_reference = models.CharField(max_length=255, null=True, blank=True)
-    initiator_account_current_balance = models.CharField(max_length=255, null=True, blank=True)
+    initiator_account_current_balance = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    recipient_type = models.CharField(max_length=20, choices=RECIPIENT_TYPE)
+    requester = PhoneNumberField(blank=True, null=True)
+    failure_description = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = _('B2BTransaction')

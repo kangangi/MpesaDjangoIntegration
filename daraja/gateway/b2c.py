@@ -243,26 +243,6 @@ class B2C(MpesaBase):
         )
         return transaction
 
-    def get_value(self, data, search_key):
-        """
-        Extracts a numeric value associated with a search key from a string.
-        Uses a regular expression to find and extract the value associated with the specified search key.
-        Args:
-            data (str): The string data to search within.
-            search_key (str): The key to search for.
-        Returns:
-            str or None: The extracted value as a string, or None if the key is not found.
-        """
-        # Create a dynamic regex pattern to search for the key and its value
-        pattern = "{}=(\d+\.\d+)".format(search_key)
-
-        # Use regular expression to find the value for the given key
-        match = re.search(pattern, data)
-        if match:
-            return match.group(1)
-        else:
-            return None
-
     def b2c_handle_successful_topup(self, data: dict, transaction: B2CTopup) -> B2CTopup:
         """
         Handles a successful B2C top-up transaction.
@@ -289,7 +269,7 @@ class B2C(MpesaBase):
             elif item["Key"] == "Currency":
                 transaction.currency = item["Value"]
             elif item["Key"] == "ReceiverPartyPublicName":
-                transaction.receiver_public_name= item["Value"]
+                transaction.receiver_public_name = item["Value"]
             elif item["Key"] == "DebitPartyCharges":
                 data = item["Value"]
                 transaction.debit_party_charges = data if data else None

@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from typing import Any
 
 from django.conf import settings
@@ -65,4 +66,24 @@ class MpesaBase:
             logging.error(e)
             status = 2
         return status
+
+    def get_value(self, data, search_key):
+        """
+        Extracts a numeric value associated with a search key from a string.
+        Uses a regular expression to find and extract the value associated with the specified search key.
+        Args:
+            data (str): The string data to search within.
+            search_key (str): The key to search for.
+        Returns:
+            str or None: The extracted value as a string, or None if the key is not found.
+        """
+        # Create a dynamic regex pattern to search for the key and its value
+        pattern = "{}=(\d+\.\d+)".format(search_key)
+
+        # Use regular expression to find the value for the given key
+        match = re.search(pattern, data)
+        if match:
+            return match.group(1)
+        else:
+            return None
 
