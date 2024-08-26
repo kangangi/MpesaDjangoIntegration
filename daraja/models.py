@@ -101,3 +101,19 @@ class B2CTopup(BaseModel):
     class Meta:
         verbose_name = _('B2CTopup')
         verbose_name_plural = _('B2CTopups')
+
+class B2BExpressTransaction(BaseModel):
+    STATUS = ((0, "Complete"), (1, "Pending"), (2, "Failed"),)
+    ip_address = models.CharField(max_length=200, blank=True, null=True)
+    receiver_short_code = models.IntegerField()
+    amount = models.IntegerField()
+    reference = models.CharField(max_length=200, blank=True, null=True)
+    request_ref_id = models.CharField(max_length=255, unique=True, default=uuid.uuid4, blank=True)
+    result_description = models.CharField(max_length=255, blank=True, null=True)
+    conversation_id = models.CharField(max_length=255, blank=True, null=True)
+    transaction_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    ailure_description = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('B2BExpressTransaction')
+        verbose_name_plural = _('B2BExpressTransactions')

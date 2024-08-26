@@ -11,7 +11,7 @@ from daraja.gateway.c2b import C2B
 from daraja.gateway.dynamicqr import DynamicQR
 from daraja.serializers import (
     STKTransactionSerializer, STKCheckoutSerializer, B2CCheckoutSerializer, B2BCheckoutSerializer,
-    B2BTransactionSerializer, DynamicQRInputSerializer, B2CTopupInputSerializer
+    B2BTransactionSerializer, DynamicQRInputSerializer, B2CTopupInputSerializer, B2BExpressCheckoutSerializer
 )
 
 class STKCheckout(APIView):
@@ -138,4 +138,32 @@ class B2CTopUpCallback(APIView):
         except json.decoder.JSONDecodeError:
             return Response("Invalid json", status=status.HTTP_400_BAD_REQUEST)
 
+        return Response("Response received", status=status.HTTP_200_OK)
+
+
+class B2BExpressCheckout(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = B2BExpressCheckoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        b2b = B2B()
+        response = b2b.b2b_express_send(request=request, **serializer.validated_data)
+        return Response(response)
+
+
+class B2BExpressCallBack(APIView):
+    permission_classes = (AllowAny, )
+
+    def get(self):
+        return Response({"status": "OK"}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        data = request.body
+        b2b = B2B()
+        try:
+            json_data = json.loads(data)
+            b2b.b2b_express_callback_handler(json_data)
+        except json.decoder.JSONDecodeError:
+            return Response("Invalid json", status=status.HTTP_400_BAD_REQUEST)
         return Response("Response received", status=status.HTTP_200_OK)

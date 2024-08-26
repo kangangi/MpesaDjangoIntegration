@@ -7,7 +7,7 @@ from django.conf import settings
 from rest_framework.request import Request
 import requests
 from daraja.gateway.base import MpesaBase
-from daraja.models import B2BTransaction
+from daraja.models import B2BTransaction, B2BExpressTransaction
 
 
 class B2B(MpesaBase):
@@ -22,6 +22,8 @@ class B2B(MpesaBase):
         self.b2b_url = settings.MPESA_B2B_URL
         self.b2b_callback_url = settings.BASE_URL + settings.MPESA_B2B_CALLBACK_URL
         self.security_credentials = settings.MPESA_SECURITY_CREDENTIALS
+        self.b2b_express_url = settings.MPESA_B2B_EXPRESS_URL
+        self.b2b_express_callback_url = settings.BASE_URL + settings.MPESA_B2B_EXPRESS_CALLBACK_URL
 
     def b2b_send(
             self, request: Request, amount: int, party_b: int, remarks: str, recipient_type: str, phone_number=None,
@@ -155,4 +157,69 @@ class B2B(MpesaBase):
         transaction.save()
         return transaction
 
+    def b2b_express_send(self, request: Request,  receiver_short_code: int, amount: int, reference: str):
+        request_ref_id = str(uuid.uuid4())
 
+        payload = {
+            "primaryShortCode": self.short_code,
+            "receiverShortCode": receiver_short_code,
+            "amount": amount,
+            "paymentRef": reference,
+            "callbackUrl": self.b2b_express_callback_url,
+            "partnerName": self.organization_name,
+            "RequestRefID": request_ref_id
+        }
+
+        response = requests.request(
+            "POST",
+            self.b2b_express_url,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer {}".format(self.get_access_token()),
+            },
+            data=json.dumps(payload)
+        )
+        response_data = response.json()
+        from pprint import  pprint
+        pprint(response_data)
+        if response.status_code == 200:
+            conversation_id = response_data.get('ConversationID')
+            ip = request.META.get("REMOTE_ADDR")
+            B2BExpressTransaction.objects.create(
+                request_ref_id=request_ref_id,
+                ip_address=ip,
+                reference=reference,
+                amount=amount,
+                conversation_id=conversation_id,
+                receiver_short_code=receiver_short_code
+            )
+        return response_data
+
+    def b2b_express_get_transaction_object(self, data: dict) -> B2BExpressTransaction:
+        request_id = data["Result"]["requestId"]
+        transaction, _ = B2BExpressTransaction.objects.get_or_create(
+            request_ref_id=request_id
+        )
+        return transaction
+
+    def b2b_express_handle_successful_pay(
+            self, data: dict, transaction: B2BExpressTransaction
+    ) -> B2BExpressTransaction:
+        transaction.transaction_id = data["Result"]["TransactionID"]
+        transaction.conversation_id = data["Result"]["conversationID"]
+        transaction.save()
+
+        return transaction
+
+    def b2b_expres_callback_handler(self, data: dict) -> B2BExpressTransaction:
+
+        status = self.check_status(data)
+        transaction = self.b2b_express_get_transaction_object(data)
+        if status == 2:
+            transaction.failure_description = data["Result"]["ResultDesc"]
+        if status == 0:
+            self.b2b_express_handle_successful_pay(data, transaction)
+
+        transaction.status = status
+        transaction.save()
+        return transaction

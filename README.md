@@ -1,4 +1,4 @@
-# MpesaDjangoIntegration
+\q# MpesaDjangoIntegration
 A python package for integration of safaricom daraja apis
 
 The following services have been implemented

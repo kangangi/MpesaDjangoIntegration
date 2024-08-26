@@ -2,7 +2,7 @@ from django.urls import path
 
 from daraja.views import (
     STKCheckout, STKCallBack, B2CCheckout, B2CCallBack, C2BConfirmationCallBack, B2BCheckout, B2BCallBack, DynamicQRView,
-    B2CTopup, B2CTopUpCallback
+    B2CTopup, B2CTopUpCallback, B2BExpressCallBack, B2BExpressCheckout
 )
 
 urlpatterns = [
@@ -15,5 +15,7 @@ urlpatterns = [
     path("c2b/confirm/", C2BConfirmationCallBack.as_view()),
     path('dynamic_qr/generate/', DynamicQRView.as_view()),
     path("b2c/topup/", B2CTopup.as_view(), name="b2b send money"),
-    path("b2c/topup/callback/", B2CTopUpCallback.as_view(), name='b2b call back'),
+    path("b2c/topup/callback/", B2CTopUpCallback.as_view(), name='b2c top upcall back'),
+    path("b2b/express/", B2BExpressCheckout.as_view()),
+    path("b2b/express/callback/", B2BExpressCallBack.as_view())
 ]

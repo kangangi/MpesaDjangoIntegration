@@ -137,3 +137,13 @@ class B2CTopupInputSerializer(serializers.Serializer):
         if phone_number:
             attrs["phone_number"] = str(phone_number)[1:]
         return attrs
+
+class B2BExpressCheckoutSerializer(serializers.Serializer):
+    amount = serializers.IntegerField()
+    receiver_short_code = serializers.IntegerField()
+    reference = serializers.CharField()
+
+    def validate(self, attrs):
+        reference = attrs.pop("reference")
+        attrs["reference"] = reference.replace(" ", "")
+        return attrs

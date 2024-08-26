@@ -25,6 +25,7 @@ class MpesaBase:
         self.consumer_secret = settings.MPESA_CONSUMER_SECRET
         self.access_token_url = settings.MPESA_ACCESS_TOKEN_URL
         self.username = settings.MPESA_USERNAME
+        self.organization_name = settings.ORGANIZATION_NAME
 
     def get_access_token(self) -> str:
         """
